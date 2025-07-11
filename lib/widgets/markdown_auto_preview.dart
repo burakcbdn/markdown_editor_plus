@@ -30,7 +30,44 @@ class MarkdownAutoPreview extends StatefulWidget {
     this.expands = false,
     this.decoration = const InputDecoration(isDense: true),
     this.hintText,
+    this.focusNode,
+    this.internalFocusNode,
+    this.onFocusChange,
+    this.customActions = const [],
+    this.visibleActions = const {
+      MarkdownToolbarAction.preview,
+      MarkdownToolbarAction.clear,
+      MarkdownToolbarAction.reset,
+      MarkdownToolbarAction.selectSingleLine,
+      MarkdownToolbarAction.bold,
+      MarkdownToolbarAction.italic,
+      MarkdownToolbarAction.strikethrough,
+      MarkdownToolbarAction.heading,
+      MarkdownToolbarAction.unorderedList,
+      MarkdownToolbarAction.checkboxList,
+      MarkdownToolbarAction.emoji,
+      MarkdownToolbarAction.link,
+      MarkdownToolbarAction.image,
+      MarkdownToolbarAction.blockquote,
+      MarkdownToolbarAction.code,
+      MarkdownToolbarAction.horizontalLine,
+    },
   });
+
+  /// Set of actions to display in the toolbar
+  final Set<MarkdownToolbarAction> visibleActions;
+
+  /// Custom action widgets to be displayed at the end of the toolbar
+  final List<Widget> customActions;
+
+  /// The focus node for the text field
+  final FocusNode? focusNode;
+
+  /// The focus scope node for the text field
+  final FocusScopeNode? internalFocusNode;
+
+  /// The callback to call when the focus changes
+  final ValueChanged<bool>? onFocusChange;
 
   /// Markdown syntax to reset the field to
   ///
@@ -189,9 +226,9 @@ class _MarkdownAutoPreviewState extends State<MarkdownAutoPreview> {
   // Internal parameter
   late TextEditingController _internalController;
 
-  final FocusScopeNode _internalFocus =
+  late FocusScopeNode _internalFocus =
       FocusScopeNode(debugLabel: '_internalFocus');
-  final FocusNode _textFieldFocusNode =
+  late FocusNode _textFieldFocusNode =
       FocusNode(debugLabel: '_textFieldFocusNode');
 
   late Toolbar _toolbar;
@@ -201,6 +238,10 @@ class _MarkdownAutoPreviewState extends State<MarkdownAutoPreview> {
   @override
   void initState() {
     _internalController = widget.controller ?? TextEditingController();
+    _textFieldFocusNode =
+        widget.focusNode ?? FocusNode(debugLabel: '_textFieldFocusNode');
+    _internalFocus = widget.internalFocusNode ??
+        FocusScopeNode(debugLabel: '_internalFocus');
 
     _toolbar = Toolbar(
       controller: _internalController,
@@ -289,9 +330,7 @@ class _MarkdownAutoPreviewState extends State<MarkdownAutoPreview> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _editor(),
-
-              // show toolbar
+                        // show toolbar
               if (!widget.readOnly)
                 MarkdownToolbar(
                   markdownSyntax: widget.markdownSyntax,
@@ -315,7 +354,12 @@ class _MarkdownAutoPreviewState extends State<MarkdownAutoPreview> {
                   emojiConvert: widget.emojiConvert,
                   toolbarBackground: widget.toolbarBackground,
                   expandableBackground: widget.expandableBackground,
-                )
+                  visibleActions: widget.visibleActions,
+                  customActions: widget.customActions,
+                ),
+              _editor(),
+
+    
             ],
           );
   }
